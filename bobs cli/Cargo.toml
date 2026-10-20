@@ -1,0 +1,15 @@
+[package]
+name = "bobs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.104"
+clap = { version = "4.6.7", features = ["derive"] }
+futures-util = "0.3.34"
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "json", "stream", "gzip", "charset", "http2"] }
+rustyline = "19.0.0"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+thiserror = "2.0.21"
+tokio = { version = "1.54.0", features = ["rt-multi-thread", "macros", "fs", "io-util", "signal"] }

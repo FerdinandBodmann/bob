@@ -37,10 +37,9 @@ pub fn run(rt: &tokio::runtime::Runtime, cfg: &Config) -> Result<()> {
     let _ = rl.load_history(&history);
 
     println!(
-        "{} {} · {} · tools: {}",
+        "{} {} · tools: {}",
         ui::bold("bobs"),
-        ui::dim(&cfg.provider),
-        ui::dim(&cfg.model),
+        ui::dim(&agent.client.describe()),
         if cfg.no_tools {
             ui::yellow("off").to_string()
         } else {

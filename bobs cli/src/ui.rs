@@ -31,9 +31,12 @@ pub fn green(s: &str) -> String {
 pub fn yellow(s: &str) -> String {
     paint("33", s)
 }
+// Scaffold utilities: kept for the tools/UI you will add.
+#[allow(dead_code)]
 pub fn blue(s: &str) -> String {
     paint("34", s)
 }
+#[allow(dead_code)]
 pub fn magenta(s: &str) -> String {
     paint("35", s)
 }
@@ -53,6 +56,7 @@ pub fn flush() {
 }
 
 /// Hard-wrap nothing, just pad/truncate a string to a fixed width for tables.
+#[allow(dead_code)]
 pub fn truncate_chars(s: &str, max: usize) -> (String, bool) {
     if s.chars().count() <= max {
         return (s.to_string(), false);

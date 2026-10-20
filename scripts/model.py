@@ -173,12 +173,21 @@ class GPT(nn.Module):
 
     @torch.no_grad()
     def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None, seed=None):
-        """Sample tokens autoregressively. Supports temperature and top-k."""
+        """Sample tokens autoregressively. Supports temperature and top-k.
+
+        When the context window fills up, the KV cache is dropped and the last
+        `block_size` tokens are re-encoded (sliding window) instead of crashing.
+        """
         if seed is not None:
             torch.manual_seed(seed)
         self.eval()
+        block = self.cfg.block_size
+        idx = idx[:, -block:]  # never feed more than the model's context
         past_kvs = None
         for _ in range(max_new_tokens):
+            if past_kvs is not None and past_kvs[0][0].size(2) >= block:
+                past_kvs = None          # context full: drop cache, re-encode window
+                idx = idx[:, -block:]
             idx_cond = idx if past_kvs is None else idx[:, -1:]
             logits, _, past_kvs = self(idx_cond, past_kvs=past_kvs, use_cache=True)
             logits = logits[:, -1, :] / max(temperature, 1e-8)

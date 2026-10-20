@@ -56,6 +56,15 @@ def main():
     data = torch.tensor(tok.encode(text), dtype=torch.long)
     tok.save(Path(args.out).with_suffix(".tokenizer.json"))
 
+    if len(data) < 2:
+        sys.exit(f"corpus is too small: {len(data)} tokens after tokenization — "
+                 f"put an actual text in {args.data}")
+    if len(data) < args.block_size + 2:
+        new_bs = max(4, len(data) - 2)
+        print(f"warning: corpus has only {len(data)} tokens but block_size={args.block_size}; "
+              f"shrinking block_size to {new_bs}. This is a smoke test, not real training.")
+        args.block_size = new_bs
+
     cfg = GPTConfig(vocab_size=tok.vocab_size, block_size=args.block_size,
                     n_layer=6, n_head=6, n_embd=384, dropout=0.1)
     model = GPT(cfg).to(device)

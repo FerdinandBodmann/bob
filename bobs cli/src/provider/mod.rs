@@ -30,7 +30,7 @@ pub struct ToolDef {
     pub parameters: Value,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ToolCall {
     pub id: String,
     pub name: String,

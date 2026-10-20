@@ -3,6 +3,7 @@
 //! llama.cpp server, LM Studio, Ollama, …
 
 use anyhow::{bail, Context, Result};
+use futures_util::StreamExt;
 use serde_json::{json, Value};
 
 use super::{api_error, sse_data, Client, Event, Kind, LineBuffer, Msg, Sink, Step, ToolCall, ToolDef};
@@ -11,7 +12,7 @@ pub async fn complete(
     c: &Client,
     msgs: &[Msg],
     tools: &[ToolDef],
-    mut sink: Sink<'_>,
+    sink: Sink<'_>,
 ) -> Result<Step> {
     debug_assert_eq!(c.kind, Kind::OpenAi);
 

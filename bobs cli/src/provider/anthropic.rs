@@ -11,7 +11,7 @@ pub async fn complete(
     c: &Client,
     msgs: &[Msg],
     tools: &[ToolDef],
-    mut sink: Sink<'_>,
+    sink: Sink<'_>,
 ) -> Result<Step> {
     debug_assert_eq!(c.kind, Kind::Anthropic);
 
@@ -29,7 +29,7 @@ pub async fn complete(
             Msg::User(s) => wire.push(json!({"role": "user", "content": [text_block(s)]})),
             Msg::Assistant { text, calls } => {
                 let mut content: Vec<Value> = Vec::new();
-                if let Some(t) = text.filter(|t| !t.is_empty()) {
+                if let Some(t) = text.as_ref().filter(|t| !t.is_empty()) {
                     content.push(text_block(t));
                 }
                 for call in calls {

@@ -6,6 +6,8 @@ mod repl;
 mod tools;
 mod ui;
 
+use std::io::IsTerminal;
+
 use anyhow::{Context, Result};
 use clap::Parser;
 use serde_json::Value;
@@ -14,7 +16,6 @@ use crate::agent::Agent;
 use crate::cli::{Cli, Command};
 use crate::config::Config;
 use crate::provider::Msg;
-use crate::ui;
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -125,7 +126,10 @@ fn doctor(rt: &tokio::runtime::Runtime, cfg: &Config) -> Result<()> {
     println!("  base url     {}", cfg.base_url);
     println!("  model        {}", cfg.model);
     println!("  api key      {}", masked);
-    println!("  tools        {}", if cfg.no_tools { "disabled".into() } else { "fetch, search".into() });
+    println!(
+        "  tools        {}",
+        if cfg.no_tools { "disabled" } else { "fetch, search" }
+    );
     println!("  max tokens   {}", cfg.max_tokens);
     println!("  max steps    {}", cfg.max_steps);
     println!("  fetch limit  {} chars", cfg.fetch_limit);

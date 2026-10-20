@@ -12,6 +12,7 @@ use super::{htmltext, Ctx, USER_AGENT};
 
 const ENDPOINT: &str = "https://lite.duckduckgo.com/lite/";
 
+#[derive(Debug)]
 pub struct Hit {
     pub title: String,
     pub url: String,
@@ -88,9 +89,12 @@ pub fn parse(html: &str, limit: usize) -> Vec<Hit> {
 
 /// Find the next result link at or after `from`, returning the index just past
 /// its `</a>`.
+/// Find the next result link at or after `from`, returning the index just past
+/// its `</a>`. Only opening tags (`<a …`) count — a bare `find("<a")` would also
+/// match the `<a` inside every `</a>` close tag.
 fn next_link(html: &str, from: usize) -> Option<(String, String, usize)> {
     let mut cursor = from;
-    while let Some(found) = html[cursor..].find("<a") {
+    while let Some(found) = find_open_tag(html, cursor, "a") {
         let start = cursor + found;
         let tag_end = start + html[start..].find('>')?;
         let tag = &html[start..=tag_end];
@@ -110,6 +114,30 @@ fn next_link(html: &str, from: usize) -> Option<(String, String, usize)> {
         if is_result && href.starts_with("http") && !title.is_empty() {
             return Some((title, resolve(&href), next));
         }
+    }
+    None
+}
+
+/// Byte offset of the next opening tag `<name` (attributes or `>` following)
+/// at or after `from`. A close tag `</name>` never matches, because of the `/`.
+fn find_open_tag(html: &str, from: usize, name: &str) -> Option<usize> {
+    let bytes = html.as_bytes();
+    let needle = format!("<{name}");
+    let mut cursor = from;
+
+    while let Some(found) = html[cursor..].find(&needle) {
+        let start = cursor + found;
+        let next_byte = bytes.get(start + needle.len()).copied();
+        let is_open = match next_byte {
+            // `<a>`, `<a …>`, `<a/>`
+            None | Some(b'>') | Some(b' ') | Some(b'\t') | Some(b'\n') | Some(b'\r') | Some(b'/') => true,
+            // `<area>`, `<abbr>` — a different tag entirely
+            _ => false,
+        };
+        if is_open {
+            return Some(found);
+        }
+        cursor = start + needle.len();
     }
     None
 }

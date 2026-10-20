@@ -111,8 +111,9 @@ fn next_link(html: &str, from: usize) -> Option<(String, String, usize)> {
             attrs.contains("rel=\"nofollow\"") || attrs.contains("class=\"result-link\"");
 
         cursor = next;
-        if is_result && href.starts_with("http") && !title.is_empty() {
-            return Some((title, resolve(&href), next));
+        let abs = resolve(&href);
+        if is_result && (abs.starts_with("http") || abs.starts_with("https")) && !title.is_empty() {
+            return Some((title, abs, next));
         }
     }
     None
@@ -247,5 +248,31 @@ mod tests {
     #[test]
     fn encodes_query() {
         assert_eq!(percent_encode("rust ownership"), "rust+ownership");
+    }
+}
+
+#[cfg(test)]
+mod dbg {
+    use super::*;
+    #[test]
+    fn debug_parse() {
+        let html = r#"<a rel="nofollow" href="https://docs.rs/serde/" class="result-link">serde - Rust</a>"#;
+        println!("find_open_tag(a,0)={:?}", find_open_tag(html, 0, "a"));
+        println!("next_link(html,0)={:?}", next_link(html, 0));
+        let html2 = r#"<a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fx">Example</a>"#;
+        println!("find_open_tag(a,0) for #2={:?}", find_open_tag(html2, 0, "a"));
+        println!("next_link(html2,0)={:?}", next_link(html2, 0));
+    }
+}
+
+#[cfg(test)]
+mod dbg2 {
+    use super::*;
+    #[test]
+    fn debug_attr() {
+        let tag = r#"<a rel="nofollow" href="https://docs.rs/serde/" class="result-link">"#;
+        println!("attr href = {:?}", attr(tag, "href"));
+        let tag2 = r#"<a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fx">"#;
+        println!("attr href #2 = {:?}", attr(tag2, "href"));
     }
 }
